@@ -1,12 +1,12 @@
 <?php
 
-namespace ScoutVectorize\Engines;
+namespace BrynjDigital\LaravelModelVectorize\Engines;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\LazyCollection;
 use Laravel\Scout\Builder;
 use Laravel\Scout\Engines\Engine;
-use ScoutVectorize\VectorizeClient;
+use BrynjDigital\LaravelModelVectorize\VectorizeClient;
 
 class VectorizeEngine extends Engine
 {
@@ -38,7 +38,6 @@ class VectorizeEngine extends Engine
                 $searchableData,
                 [
                     'model' => get_class($model),
-                    'key' => $model->getScoutKey(),
                 ]
             );
 
@@ -181,9 +180,12 @@ class VectorizeEngine extends Engine
     {
         return collect($results['results'])->map(function ($result) {
             // Extract the original model key from our prefixed ID
-            // Format: "App_Models_Product_123" -> "123"
-            $metadata = $result['metadata'] ?? [];
-            return isset($metadata['key']) ? (int) $metadata['key'] : null;
+            // Format: "App_Models_Product_123" -> 123
+            $id = $result['id'] ?? '';
+            if (preg_match('/_(\d+)$/', $id, $matches)) {
+                return (int) $matches[1];
+            }
+            return null;
         })->filter()->values();
     }
 

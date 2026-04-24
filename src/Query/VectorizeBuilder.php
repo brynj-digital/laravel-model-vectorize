@@ -125,10 +125,14 @@ class VectorizeBuilder
             return $this->model->newCollection();
         }
 
-        // Extract model IDs from metadata
+        // Extract model IDs from vector ID format
+        // Format: "App_Models_Product_123" -> 123
         $modelIds = collect($results['results'])->map(function ($result) {
-            $metadata = $result['metadata'] ?? [];
-            return $metadata['key'] ?? null;
+            $id = $result['id'] ?? '';
+            if (preg_match('/_(\d+)$/', $id, $matches)) {
+                return (int) $matches[1];
+            }
+            return null;
         })->filter()->values()->all();
 
         if (empty($modelIds)) {

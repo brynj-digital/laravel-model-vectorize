@@ -275,4 +275,210 @@ class VectorizeClient
     {
         return $this->indexName;
     }
+
+    /**
+     * Delete the entire Vectorize index.
+     */
+    public function deleteIndex(): array
+    {
+        try {
+            $url = "https://api.cloudflare.com/client/v4/accounts/{$this->accountId}/vectorize/v2/indexes/{$this->indexName}";
+
+            $response = $this->client->delete($url, [
+                'headers' => [
+                    'Authorization' => "Bearer {$this->apiToken}",
+                    'Content-Type' => 'application/json',
+                ],
+            ]);
+
+            $result = json_decode($response->getBody()->getContents(), true);
+            return $result;
+        } catch (\Exception $e) {
+            Log::error('Vectorize: Error deleting index', [
+                'error' => $e->getMessage(),
+                'index_name' => $this->indexName,
+            ]);
+            throw new VectorizeException(
+                "Failed to delete index: {$e->getMessage()}",
+                0,
+                $e
+            );
+        }
+    }
+
+    /**
+     * Check if the index exists.
+     */
+    public function indexExists(): bool
+    {
+        try {
+            $url = "https://api.cloudflare.com/client/v4/accounts/{$this->accountId}/vectorize/v2/indexes/{$this->indexName}";
+
+            $response = $this->client->get($url, [
+                'headers' => [
+                    'Authorization' => "Bearer {$this->apiToken}",
+                ],
+            ]);
+
+            $result = json_decode($response->getBody()->getContents(), true);
+            return isset($result['success']) && $result['success'];
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            if ($e->getResponse()->getStatusCode() === 404) {
+                return false; // Index doesn't exist
+            }
+            throw new VectorizeException(
+                "Failed to check if index exists: {$e->getMessage()}",
+                0,
+                $e
+            );
+        }
+    }
+
+    /**
+     * Create a new Vectorize index.
+     */
+    public function createIndex(string $name, int $dimensions, string $metric): array
+    {
+        try {
+            $payload = [
+                'name' => $name,
+                'description' => "Vector index for {$name} with dimensions {$dimensions}",
+                'config' => [
+                    'dimensions' => $dimensions,
+                    'metric' => $metric,
+                ],
+            ];
+
+            $url = "https://api.cloudflare.com/client/v4/accounts/{$this->accountId}/vectorize/v2/indexes";
+
+            $response = $this->client->post($url, [
+                'headers' => [
+                    'Authorization' => "Bearer {$this->apiToken}",
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $payload,
+            ]);
+
+            $result = json_decode($response->getBody()->getContents(), true);
+            return $result;
+        } catch (\Exception $e) {
+            Log::error('Vectorize: Error creating index', [
+                'error' => $e->getMessage(),
+                'index_name' => $name,
+                'dimensions' => $dimensions,
+                'metric' => $metric,
+            ]);
+            throw new VectorizeException(
+                "Failed to create index: {$e->getMessage()}",
+                0,
+                $e
+            );
+        }
+    }
+
+    /**
+     * Create a metadata index on a specific property.
+     */
+    public function createMetadataIndex(string $propertyName, string $type, ?string $indexName = null): array
+    {
+        try {
+            $targetIndex = $indexName ?? $this->indexName;
+            $url = "https://api.cloudflare.com/client/v4/accounts/{$this->accountId}/vectorize/v2/indexes/{$targetIndex}/metadata_index/create";
+
+            $payload = [
+                'propertyName' => $propertyName,
+                'indexType' => $type,
+            ];
+
+            $response = $this->client->post($url, [
+                'headers' => [
+                    'Authorization' => "Bearer {$this->apiToken}",
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $payload,
+            ]);
+
+            $result = json_decode($response->getBody()->getContents(), true);
+            return $result;
+        } catch (\Exception $e) {
+            Log::error('Vectorize: Error creating metadata index', [
+                'error' => $e->getMessage(),
+                'property_name' => $propertyName,
+                'type' => $type,
+                'index_name' => $indexName ?? $this->indexName,
+            ]);
+            throw new VectorizeException(
+                "Failed to create metadata index: {$e->getMessage()}",
+                0,
+                $e
+            );
+        }
+    }
+
+    /**
+     * Delete a metadata index.
+     */
+    public function deleteMetadataIndex(string $propertyName, ?string $indexName = null): array
+    {
+        try {
+            $targetIndex = $indexName ?? $this->indexName;
+            $url = "https://api.cloudflare.com/client/v4/accounts/{$this->accountId}/vectorize/v2/indexes/{$targetIndex}/metadata_index/delete";
+
+            $payload = [
+                'propertyName' => $propertyName,
+            ];
+
+            $response = $this->client->post($url, [
+                'headers' => [
+                    'Authorization' => "Bearer {$this->apiToken}",
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $payload,
+            ]);
+
+            $result = json_decode($response->getBody()->getContents(), true);
+            return $result;
+        } catch (\Exception $e) {
+            Log::error('Vectorize: Error deleting metadata index', [
+                'error' => $e->getMessage(),
+                'property_name' => $propertyName,
+                'index_name' => $indexName ?? $this->indexName,
+            ]);
+            throw new VectorizeException(
+                "Failed to delete metadata index: {$e->getMessage()}",
+                0,
+                $e
+            );
+        }
+    }
+
+    /**
+     * List all metadata indexes for an index.
+     */
+    public function listMetadataIndexes(?string $indexName = null): array
+    {
+        try {
+            $targetIndex = $indexName ?? $this->indexName;
+            $url = "https://api.cloudflare.com/client/v4/accounts/{$this->accountId}/vectorize/v2/indexes/{$targetIndex}/metadata_index/list";
+
+            $response = $this->client->get($url, [
+                'headers' => [
+                    'Authorization' => "Bearer {$this->apiToken}",
+                ],
+            ]);
+
+            $result = json_decode($response->getBody()->getContents(), true);
+            return $result;
+        } catch (\Exception $e) {
+            Log::error('Vectorize: Error listing metadata indexes', [
+                'error' => $e->getMessage(),
+                'index_name' => $indexName ?? $this->indexName,
+            ]);
+            throw new VectorizeException(
+                "Failed to list metadata indexes: {$e->getMessage()}",
+                0,
+                $e
+            );
+        }
+    }
 }

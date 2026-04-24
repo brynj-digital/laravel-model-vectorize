@@ -36,10 +36,18 @@ php artisan vendor:publish --tag=vectorize-config
 
 ### 1. Create a Vectorize Index
 
-Create a Vectorize index in your Cloudflare dashboard or via the API:
+Use the provided artisan command to create a Vectorize index:
 
 ```bash
-# Using Wrangler CLI
+# Recommended: Using artisan command
+php artisan vectorize:create-index my-index
+
+# Or with custom dimensions and metric
+php artisan vectorize:create-index my-index --dimensions=1024 --metric=euclidean --embedding-model=@cf/baai/bge-large-en-v1.5
+```
+
+**Alternative**: Using Wrangler CLI
+```bash
 npx wrangler vectorize create my-index --dimensions=768 --metric=cosine
 ```
 
@@ -50,26 +58,51 @@ The dimensions must match your chosen embedding model:
 
 ### 2. Create Metadata Indexes
 
-Create metadata indexes to enable efficient filtering. The `model` and `key` indexes are **required**:
+Create metadata indexes to enable efficient filtering using the artisan commands:
 
+```bash
+# Required: Create metadata index for model filtering
+php artisan vectorize:create-metadata-index model string --index-name=my-index
+```
+
+**Note**: Recent versions of this package no longer require a `key` metadata index, as model keys are now extracted directly from the vector ID format. This provides cleaner metadata and reduced storage requirements.
+
+#### Optional: Additional Metadata Indexes for `where()` Clauses
+
+You can create additional metadata indexes for any custom fields you want to filter on using the `where()` method:
+
+```bash
+# Example: Create index for filtering by status
+php artisan vectorize:create-metadata-index status string --index-name=my-index
+
+# Example: Create index for filtering by category_id
+php artisan vectorize:create-metadata-index category_id number --index-name=my-index
+
+# Example: Create index for boolean fields
+php artisan vectorize:create-metadata-index in_stock boolean --index-name=my-index
+```
+
+**Alternative**: Using Wrangler CLI
 ```bash
 # Required: Create metadata index for model filtering
 npx wrangler vectorize create-metadata-index my-index --property-name=model --type=string
 
-# Required: Create metadata index for key filtering
-npx wrangler vectorize create-metadata-index my-index --property-name=key --type=number
+# Optional: Additional metadata indexes
+npx wrangler vectorize create-metadata-index my-index --property-name=status --type=string
+npx wrangler vectorize create-metadata-index my-index --property-name=category_id --type=number
+npx wrangler vectorize create-metadata-index my-index --property-name=in_stock --type=boolean
 ```
 
-#### Optional: Additional Metadata Indexes
+#### Managing Metadata Indexes
 
-Create indexes for any custom fields you want to filter on:
+Use the provided commands to manage your metadata indexes:
 
 ```bash
-# Example: Create index for filtering by status
-npx wrangler vectorize create-metadata-index my-index --property-name=status --type=string
+# List all metadata indexes for an index
+php artisan vectorize:list-metadata-indexes --index-name=my-index
 
-# Example: Create index for filtering by category_id
-npx wrangler vectorize create-metadata-index my-index --property-name=category_id --type=number
+# Delete a metadata index
+php artisan vectorize:delete-metadata-index status --index-name=my-index
 ```
 
 ### 3. Environment Variables
@@ -193,6 +226,61 @@ Product::removeAllFromVectorize();
 ```
 
 ### Artisan Commands
+
+#### Vectorize Index Management
+
+```bash
+# Create a new Vectorize index
+php artisan vectorize:create-index
+
+# Create index with custom dimensions and metric
+php artisan vectorize:create-index my-index --dimensions=1024 --metric=euclidean --embedding-model=@cf/baai/bge-large-en-v1.5
+
+# Drop (delete) a Vectorize index
+php artisan vectorize:drop-index my-index
+
+# Force drop without confirmation (use with caution)
+php artisan vectorize:drop-index my-index --force
+```
+
+**Options for `vectorize:create-index`:**
+- `name` (optional): Index name (uses config value if not provided)
+- `--dimensions`: Vector dimensions (default: 768)
+- `--metric`: Distance metric - cosine, euclidean, or dotproduct (default: cosine)
+- `--embedding-model`: Cloudflare embedding model (default: @cf/baai/bge-base-en-v1.5)
+
+**Options for `vectorize:drop-index`:**
+- `name` (optional): Index name (uses config value if not provided)
+- `--force`: Skip confirmation prompts
+
+#### Metadata Index Management
+
+```bash
+# Create a metadata index for filtering
+php artisan vectorize:create-metadata-index property-name type --index-name=my-index
+
+# List all metadata indexes
+php artisan vectorize:list-metadata-indexes --index-name=my-index
+
+# Delete a metadata index
+php artisan vectorize:delete-metadata-index property-name --index-name=my-index
+
+# Force delete without confirmation
+php artisan vectorize:delete-metadata-index property-name --index-name=my-index --force
+```
+
+**Arguments for `vectorize:create-metadata-index`:**
+- `property-name`: The metadata property to index
+- `type`: Property type (string, number, boolean)
+
+**Arguments for `vectorize:delete-metadata-index`:**
+- `property-name`: The metadata property to delete
+
+**Options for metadata index commands:**
+- `--index-name`: Vectorize index name (uses config value if not provided)
+- `--force`: Skip confirmation prompts (delete command only)
+
+#### Model Import/Export Commands
 
 ```bash
 # Import all products

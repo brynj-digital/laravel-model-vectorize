@@ -5,6 +5,11 @@ namespace BrynjDigital\LaravelModelVectorize;
 use BrynjDigital\LaravelModelVectorize\Console\FlushCommand;
 use BrynjDigital\LaravelModelVectorize\Console\ImportCommand;
 use BrynjDigital\LaravelModelVectorize\Console\IndexInfoCommand;
+use BrynjDigital\LaravelModelVectorize\Console\CreateIndexCommand;
+use BrynjDigital\LaravelModelVectorize\Console\DropIndexCommand;
+use BrynjDigital\LaravelModelVectorize\Console\CreateMetadataIndexCommand;
+use BrynjDigital\LaravelModelVectorize\Console\DeleteMetadataIndexCommand;
+use BrynjDigital\LaravelModelVectorize\Console\ListMetadataIndexesCommand;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\ServiceProvider;
 
@@ -55,6 +60,11 @@ class VectorizeServiceProvider extends ServiceProvider
                 ImportCommand::class,
                 FlushCommand::class,
                 IndexInfoCommand::class,
+                CreateIndexCommand::class,
+                DropIndexCommand::class,
+                CreateMetadataIndexCommand::class,
+                DeleteMetadataIndexCommand::class,
+                ListMetadataIndexesCommand::class,
             ]);
         }
     }
