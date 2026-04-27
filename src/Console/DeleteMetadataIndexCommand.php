@@ -56,16 +56,16 @@ class DeleteMetadataIndexCommand extends Command
             // First, check if the metadata index exists
             $this->info("Checking for metadata index '{$propertyName}' in '{$indexName}'...");
 
-            $existingIndexesResult = $client->listMetadataIndexes($indexName);
+            $existingIndexesResult = $client->listMetadataIndexes();
 
             if (isset($existingIndexesResult['success']) && $existingIndexesResult['success']) {
-                $existingIndexes = isset($existingIndexesResult['result']['metadata_indexes'])
-                    ? $existingIndexesResult['result']['metadata_indexes']
+                $existingIndexes = isset($existingIndexesResult['result']['metadataIndexes'])
+                    ? $existingIndexesResult['result']['metadataIndexes']
                     : [];
                 $targetIndex = null;
 
                 foreach ($existingIndexes as $index) {
-                    if ((isset($index['property_name']) ? $index['property_name'] : '') === $propertyName) {
+                    if ((isset($index['propertyName']) ? $index['propertyName'] : '') === $propertyName) {
                         $targetIndex = $index;
                         break;
                     }
@@ -78,9 +78,9 @@ class DeleteMetadataIndexCommand extends Command
                 }
 
                 $this->info("Found metadata index:");
-                $this->line("  Property: " . (isset($targetIndex['property_name']) ? $targetIndex['property_name'] : 'Unknown'));
-                $this->line("  Type: " . (isset($targetIndex['type']) ? $targetIndex['type'] : 'Unknown'));
-                $this->line("  Created: " . (isset($targetIndex['created_at']) ? $targetIndex['created_at'] : 'Unknown'));
+                $this->line("  Property: " . (isset($targetIndex['propertyName']) ? $targetIndex['propertyName'] : 'Unknown'));
+                $this->line("  Type: " . (isset($targetIndex['indexType']) ? $targetIndex['indexType'] : 'Unknown'));
+                $this->line("  Created: " . (isset($targetIndex['createdAt']) ? $targetIndex['createdAt'] : 'N/A'));
             } else {
                 $this->error('Failed to check existing metadata indexes');
                 return Command::FAILURE;

@@ -69,11 +69,11 @@ class CreateMetadataIndexCommand extends Command
             $client = new VectorizeClient($accountId, $apiToken, $indexName);
             $this->info("Checking existing metadata indexes for '{$indexName}'...");
 
-            $existingIndexesResult = $client->listMetadataIndexes($indexName);
+            $existingIndexesResult = $client->listMetadataIndexes();
 
             if (isset($existingIndexesResult['success']) && $existingIndexesResult['success']) {
-                $existingIndexes = isset($existingIndexesResult['result']['metadata_indexes'])
-                    ? $existingIndexesResult['result']['metadata_indexes']
+                $existingIndexes = isset($existingIndexesResult['result']['metadataIndexes'])
+                    ? $existingIndexesResult['result']['metadataIndexes']
                     : [];
 
                 // Check for 10-property limit
@@ -85,7 +85,7 @@ class CreateMetadataIndexCommand extends Command
 
                 // Check for duplicates
                 foreach ($existingIndexes as $index) {
-                    if ((isset($index['property_name']) ? $index['property_name'] : '') === $propertyName) {
+                    if ((isset($index['propertyName']) ? $index['propertyName'] : '') === $propertyName) {
                         $this->error("Metadata index for property '{$propertyName}' already exists.");
                         $this->info('Use "php artisan vectorize:list-metadata-indexes" to see all existing metadata indexes.');
                         return Command::FAILURE;

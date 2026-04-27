@@ -50,11 +50,11 @@ class ListMetadataIndexesCommand extends Command
             $this->info("Listing metadata indexes for '{$indexName}'...");
 
             $client = new VectorizeClient($accountId, $apiToken, $indexName);
-            $result = $client->listMetadataIndexes($indexName);
+            $result = $client->listMetadataIndexes();
 
             if (isset($result['success']) && $result['success']) {
-                $metadataIndexes = isset($result['result']['metadata_indexes'])
-                    ? $result['result']['metadata_indexes']
+                $metadataIndexes = isset($result['result']['metadataIndexes'])
+                    ? $result['result']['metadataIndexes']
                     : [];
 
                 if (empty($metadataIndexes)) {
@@ -70,11 +70,11 @@ class ListMetadataIndexesCommand extends Command
                 $tableData = [];
                 foreach ($metadataIndexes as $index) {
                     $tableData[] = [
-                        'property' => isset($index['property_name']) ? $index['property_name'] : 'Unknown',
-                        'type' => isset($index['type']) ? $index['type'] : 'Unknown',
-                        'created' => isset($index['created_at'])
-                            ? date('Y-m-d H:i:s', strtotime($index['created_at']))
-                            : 'Unknown',
+                        'property' => isset($index['propertyName']) ? $index['propertyName'] : 'Unknown',
+                        'type' => isset($index['indexType']) ? $index['indexType'] : 'Unknown',
+                        'created' => isset($index['createdAt'])
+                            ? date('Y-m-d H:i:s', strtotime($index['createdAt']))
+                            : 'N/A',
                     ];
                 }
 

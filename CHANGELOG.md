@@ -2,6 +2,13 @@
 
 All notable changes to `laravel-model-vectorize` will be documented in this file.
 
+## [2.0.1] - 2026-04-27
+
+### Known Issues
+- `vectorize:list-metadata-indexes` command may not display metadata indexes correctly due to Cloudflare API response format differences
+- The endpoint and API client implementation is correct, but the response parsing may need adjustment based on actual API response structure
+- Users can verify metadata indexes using the Cloudflare dashboard or Wrangler CLI as an alternative: `npx wrangler vectorize list-metadata-index <index-name>`
+
 ## [2.0.0] - 2026-04-24
 
 ### Breaking Changes
